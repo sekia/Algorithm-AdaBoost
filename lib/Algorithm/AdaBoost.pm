@@ -191,8 +191,8 @@ Algorithm::AdaBoost - AdaBoost learning algorithm
   # Now you have a boost-ed classifier (Algorithm::AdaBoost::Classifier).
   my $classifier = $learner->final_classifier;
   given ($classifier->classify([...])) {
-    when ($_ > 0) { say 'The data belogs to class 1.' }
-    when ($_ < 0) { say 'The data belogs to class 2.' }
+    when ($_ > 0) { say 'The data belongs to class 1.' }
+    when ($_ < 0) { say 'The data belongs to class 2.' }
     default { warn 'The data cannot be classified.' }
   }
 
@@ -226,13 +226,13 @@ When the function is called, 2 named parameters are specified like this:
      training_set => [...],
   );
 
-C<distribution> is a ArrayRef which each item is a probability of corresponding item in C<training_set>. i.e. C<distribution> is P(X = t_i) where t_i is i-th item in C<training_set>.
+C<distribution> is an ArrayRef which each item is a probability of corresponding item in C<training_set>. i.e. C<distribution> is P(X = t_i) where t_i is i-th item in C<training_set>.
 
 The generated classifier is expected to take 1 argument (C<feature>) and return C<+1> or C<-1> as output.
 
 =back
 
-Either of both can be override temporarily with parameters for C<train>.
+Either of both can be overriden temporarily with parameters for C<train>.
 
 =head2 classify
 
