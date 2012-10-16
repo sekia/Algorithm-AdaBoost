@@ -1,6 +1,7 @@
 package Algorithm::AdaBoost;
 
 use 5.014;
+use Algorithm::AdaBoost::Classifier;
 use Carp qw//;
 use List::Util;
 use Smart::Args;
@@ -131,39 +132,6 @@ sub trained { exists shift->{final_classifier} }
 sub training_set { shift->{training_set} }
 
 sub weak_classifier_generator { shift->{weak_classifier_generator} }
-
-package Algorithm::AdaBoost::Classifier;
-
-use 5.014;
-use overload '&{}' => \&as_closure;
-use List::Util;
-use Scalar::Util;
-use Smart::Args;
-
-sub new {
-  args
-    my $class => 'ClassName',
-    my $weak_classifiers => 'ArrayRef[HashRef]';
-  bless +{
-    weak_classifiers => $weak_classifiers,
-  } => $class;
-}
-
-sub as_closure {
-  args my $self;
-  return sub { $self->classify(@_) };
-}
-
-sub classify {
-  args_pos
-    my $self,
-    my $feature => 'Any';
-  List::Util::sum(
-    map {
-      $_->{weight} * $_->{classifier}->($feature);
-    } @{ $self->{weak_classifiers} }
-  );
-}
 
 1;
 __END__
