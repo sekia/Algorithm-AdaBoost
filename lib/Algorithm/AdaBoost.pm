@@ -35,7 +35,7 @@ sub calculate_classifier_weight {
 sub classify {
   args_pos
     my $self,
-    my $feature => 'ArrayRef';
+    my $feature => 'Any';
   Carp::croak 'Training phase is undone yet.' unless $self->trained;
   $self->final_classifier->classify($feature);
 }
