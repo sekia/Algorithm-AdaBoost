@@ -246,6 +246,8 @@ Koichi SATOH E<lt>sekia@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
+L<A Short Introduction to Boosting|http://www.site.uottawa.ca/~stan/csi5387/boost-tut-ppr.pdf>
+
 =head1 LICENSE
 
 This library is free software; you can redistribute it and/or modify
