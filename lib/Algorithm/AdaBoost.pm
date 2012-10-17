@@ -145,7 +145,7 @@ Algorithm::AdaBoost - AdaBoost learning algorithm
   use Algorithm::AdaBoost;
 
   # Training phase.
-  my $learner = Alogrithm::AdatBoost->new(
+  my $learner = Alogrithm::AdaBoost->new(
     training_set => [
       +{ feature => [...], label => 1, },
       +{ feature => [...], label => -1, },
