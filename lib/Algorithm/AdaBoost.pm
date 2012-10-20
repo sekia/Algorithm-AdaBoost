@@ -181,7 +181,7 @@ Constructor. You can specify 2 optional attributes:
 
 An ArrayRef which is used as a training data set.
 
-Each item is a HashRef which having 2 keys: C<feature> and C<label>. C<feature> is a arbitrary input for classifiers and C<label> is a expected output (C<+1> or C<-1>).
+Each item is a HashRef having 2 keys: C<feature> and C<label>. C<feature> is a arbitrary input that classifier accepts and C<label> is a expected output label (C<+1> or C<-1>).
 
 =item weak_classifier_generator
 
@@ -196,7 +196,7 @@ When the function is called, 2 named parameters are specified like this:
 
 C<distribution> is an ArrayRef which each item is a probability of corresponding item in C<training_set>. i.e. C<distribution> is P(X = t_i) where t_i is i-th item in C<training_set>.
 
-The generated classifier is expected to take 1 argument (C<feature>) and return C<+1> or C<-1> as output.
+The generated classifier is expected to be a CodeRef which takes 1 argument (value of C<feature>) and return C<+1> or C<-1> as a output label.
 
 =back
 
@@ -220,7 +220,7 @@ This method takes 1 mandatory parameter:
 
 =item num_iterations
 
-Specifies how many iterations to be done (i.e., how many weak classifier to be generated).
+Specifies how many training iterations to be excuted (i.e., how many weak classifiers to be generated).
 
 =back
 

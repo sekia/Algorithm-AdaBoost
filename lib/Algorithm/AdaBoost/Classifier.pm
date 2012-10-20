@@ -46,14 +46,14 @@ This class should be instanciated via C<< Algorithm::AdaBoost->train >>.
 
 =head2 as_closure
 
-Returns a CodeRef which delegates C<classify>.
+Returns a CodeRef which delegates given arguments to C<classify>.
 
 Altough you can use the object itself like a CodeRef because C<&{}> operator is overloaded with this method, it constructs a closure for each call.
 So if you classify many inputs, you should hold a closure explicitly or use C<classify> directly.
 
 =head2 classify
 
-Executes binary classification. Takes 1 argument as a feature and return a real number. If the number is positive, given feature is considered to belong to class 1. Similary, If the number is negative, given feature is considered to belong to class 2. If the number is zero, it means classification failure (very rare case).
+Executes binary classification. Takes 1 argument as a feature and return a real number. If the number is positive, given feature is considered to belong to one class. Similary, If the number is negative, given feature is considered to belong to another one class. If zero is returned, it means that the feature cannot be classified (very rare case).
 
 =head1 AUTHOR
 
