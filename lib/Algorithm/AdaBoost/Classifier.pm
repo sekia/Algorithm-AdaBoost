@@ -1,6 +1,6 @@
 package Algorithm::AdaBoost::Classifier;
 
-use 5.014;
+use v5.10;
 use overload '&{}' => \&as_closure;
 use List::Util;
 use Scalar::Util;

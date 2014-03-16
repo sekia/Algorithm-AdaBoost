@@ -1,6 +1,6 @@
 package Algorithm::AdaBoost;
 
-use 5.014;
+use v5.10;
 use Algorithm::AdaBoost::Classifier;
 use Carp qw//;
 use List::Util;

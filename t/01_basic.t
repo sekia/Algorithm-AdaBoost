@@ -1,4 +1,4 @@
-use 5.014;
+use v5.10;
 
 use Algorithm::AdaBoost;
 use Smart::Args;
