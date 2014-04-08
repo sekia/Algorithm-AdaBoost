@@ -1,5 +1,7 @@
 package Algorithm::AdaBoost::Classifier;
 
+use strict;
+use warnings;
 use v5.10;
 use overload '&{}' => \&as_closure;
 use List::Util;

@@ -1,5 +1,7 @@
 package Algorithm::AdaBoost;
 
+use strict;
+use warnings;
 use v5.10;
 use Algorithm::AdaBoost::Classifier;
 use Carp qw//;
