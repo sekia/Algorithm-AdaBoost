@@ -4,28 +4,29 @@ use strict;
 use warnings;
 use v5.10;
 use overload '&{}' => \&as_closure;
-use List::Util;
-use Scalar::Util;
-use Smart::Args;
+use Algorithm::AdaBoost::Util qw/assert_no_rest_params/;
+use Carp qw//;
+use List::Util qw//;
 
 sub new {
-  args
-    my $class => 'ClassName',
-    my $weak_classifiers => 'ArrayRef[HashRef]';
-  bless +{
-    weak_classifiers => $weak_classifiers,
-  } => $class;
+  my ($class, %params) = @_;
+
+  my $weak_classifiers = delete $params{weak_classifiers}
+    // Carp::croak('Missing mandatory parameter: "weak_classifiers"');
+  assert_no_rest_params %params;
+
+  bless +{ weak_classifiers => $weak_classifiers } => $class;
 }
 
 sub as_closure {
-  args my $self;
+  my ($self) = @_;
+
   return sub { $self->classify(@_) };
 }
 
 sub classify {
-  args_pos
-    my $self,
-    my $feature => 'Any';
+  my ($self, $feature) = @_;
+
   List::Util::sum(
     map {
       $_->{weight} * $_->{classifier}->($feature);

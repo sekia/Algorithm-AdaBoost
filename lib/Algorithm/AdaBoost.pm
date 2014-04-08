@@ -4,29 +4,31 @@ use strict;
 use warnings;
 use v5.10;
 use Algorithm::AdaBoost::Classifier;
+use Algorithm::AdaBoost::Util qw/assert_no_rest_params/;
 use Carp qw//;
-use List::Util;
-use Smart::Args;
+use List::Util qw//;
 
 our $VERSION = '0.01';
 
 sub new {
-  args
-    my $class => 'ClassName',
-    my $training_set => +{ isa => 'ArrayRef', optional => 1 },
-    my $weak_classifier_generator => +{ isa => 'CodeRef', optional => 1 };
+  my ($class, %params) = @_;
 
-  bless +{
-    training_set => $training_set,
-    weak_classifier_generator => $weak_classifier_generator,
-  } => $class;
+  my %self = map {
+    exists $params{$_} ? ($_ => delete $params{$_}) : ()
+  } qw/training_set weak_classifier_generator/;
+  assert_no_rest_params %params;
+
+  bless \%self => $class;
 }
 
 sub calculate_classifier_weight {
-  args
-    my $self,
-    my $classifier => 'CodeRef',
-    my $distribution => 'ArrayRef[Num]';
+  my ($self, %params) = @_;
+
+  my $classifier = delete $params{classifier}
+    // Carp::croak('Missing mandatory parameter: "classifier"');
+  my $distribution = delete $params{distribution}
+    // Carp::croak('Missing mandatory parameter: "distribution"');
+  assert_no_rest_params %params;
 
   my $error_ratio = $self->evaluate_error_ratio(
     classifier => $classifier,
@@ -36,20 +38,24 @@ sub calculate_classifier_weight {
 }
 
 sub classify {
-  args_pos
-    my $self,
-    my $feature => 'Any';
+  my ($self, $feature) = @_;
+
   Carp::croak 'Training phase is undone yet.' unless $self->trained;
   $self->final_classifier->classify($feature);
 }
 
 sub construct_hardest_distribution {
-  args
-    my $self,
-    my $classifier => 'CodeRef',
-    my $previous_distribution => 'ArrayRef[Num]',
-    my $training_set => 'ArrayRef[HashRef]',
-    my $weight => 'Num';
+  my ($self, %params) = @_;
+
+  my $classifier = delete $params{classifier}
+    // Carp::croak('Missing mandatory parameter: "classifier"');
+  my $previous_distribution = delete $params{previous_distribution}
+    // Carp::croak('Missing mandatory parameter: "previous_distribution"');
+  my $training_set = delete $params{training_set}
+    // Carp::croak('Missing mandatory parameter: "training_set"');
+  my $weight = delete $params{weight}
+    // Carp::croak('Missing mandatory parameter: "weight"');
+  assert_no_rest_params %params;
 
   my @distribution = map {
     my $training_data = $training_set->[$_];
@@ -62,10 +68,13 @@ sub construct_hardest_distribution {
 }
 
 sub evaluate_error_ratio {
-  args
-    my $self,
-    my $classifier => 'CodeRef',
-    my $distribution => 'ArrayRef[Num]';
+  my ($self, %params) = @_;
+
+  my $classifier = delete $params{classifier}
+    // Carp::croak('Missing mandatory parameter: "classifier"');
+  my $distribution = delete $params{distribution}
+    // Carp::croak('Missing mandatory parameter: "distribution"');
+  assert_no_rest_params %params;
 
   my $accuracy = 0;
   for my $i (0 .. $#$distribution) {
@@ -78,22 +87,25 @@ sub evaluate_error_ratio {
 }
 
 sub final_classifier {
-  args my $self;
+  my ($self) = @_;
+
   Carp::croak 'The classifier is not trained' unless $self->trained;
   return $self->{final_classifier};
 }
 
 sub train {
-  args
-    my $self,
-    my $num_iterations => 'Int',
-    my $training_set => +{ isa => 'ArrayRef', optional => 1 },
-    my $weak_classifier_generator => +{ isa => 'CodeRef', optional => 1 };
+  my ($self, %params) = @_;
 
-  $training_set //= $self->training_set
+  my $num_iterations = delete $params{num_iterations}
+    // Carp::croak('Missing mandatory parameter: "num_iterations"');
+  my $training_set = delete $params{training_set}
+    // $self->training_set
     // Carp::croak('Given no training set.');
-  $weak_classifier_generator //= $self->weak_classifier_generator
+  my $weak_classifier_generator = delete $params{weak_classifier_generator}
+    // $self->weak_classifier_generator
     // Carp::croak('Given no weak classifier generator.');
+  assert_no_rest_params %params;
+
   my $num_training_set = @$training_set;
 
   # Initial distribution is uniform.
@@ -129,11 +141,11 @@ sub train {
   );
 }
 
-sub trained { exists shift->{final_classifier} }
+sub trained { exists $_[0]->{final_classifier} }
 
-sub training_set { shift->{training_set} }
+sub training_set { $_[0]->{training_set} }
 
-sub weak_classifier_generator { shift->{weak_classifier_generator} }
+sub weak_classifier_generator { $_[0]->{weak_classifier_generator} }
 
 1;
 __END__
