@@ -37,10 +37,6 @@ sub classify {
 1;
 __END__
 
-=head1 NAME
-
-Algorithm::AdaBoost::Classifier
-
 =head1 DESCRIPTION
 
 This class should be instanciated via C<< Algorithm::AdaBoost->train >>.

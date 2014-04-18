@@ -1,4 +1,9 @@
 Revision history for Perl extension Algorithm::AdaBoost
 
-0.01    Tue Oct  2 10:04:18 2012
-        - original version
+{{$NEXT}}
+        - Fix error on |train|ing when the learner constructed without
+          |training_set|.
+        - Remove Smart::Args from dependency.
+
+0.01    2012-10-02
+        - Original version.
