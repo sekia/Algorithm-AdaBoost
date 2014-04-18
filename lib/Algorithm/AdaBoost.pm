@@ -28,11 +28,14 @@ sub calculate_classifier_weight {
     // Carp::croak('Missing mandatory parameter: "classifier"');
   my $distribution = delete $params{distribution}
     // Carp::croak('Missing mandatory parameter: "distribution"');
+  my $training_set = delete $params{training_set}
+    // Carp::croak('Missing mandatory parameter: "training_set"');
   assert_no_rest_params %params;
 
   my $error_ratio = $self->evaluate_error_ratio(
     classifier => $classifier,
     distribution => $distribution,
+    training_set => $training_set,
   );
   return log((1 - $error_ratio) / $error_ratio) / 2;
 }
@@ -74,11 +77,13 @@ sub evaluate_error_ratio {
     // Carp::croak('Missing mandatory parameter: "classifier"');
   my $distribution = delete $params{distribution}
     // Carp::croak('Missing mandatory parameter: "distribution"');
+  my $training_set = delete $params{training_set}
+    // Carp::croak('Missing mandatory parameter: "training_set"');
   assert_no_rest_params %params;
 
   my $accuracy = 0;
   for my $i (0 .. $#$distribution) {
-    my $training_data = $self->training_set->[$i];
+    my $training_data = $training_set->[$i];
     if ($classifier->($training_data->{feature}) == $training_data->{label}) {
       $accuracy += $distribution->[$i];
     }
@@ -122,6 +127,7 @@ sub train {
     $weight = $self->calculate_classifier_weight(
       classifier => $weak_classifier,
       distribution => $distribution,
+      training_set => $training_set,
     );
     push @weak_classifiers, +{
       classifier => $weak_classifier,

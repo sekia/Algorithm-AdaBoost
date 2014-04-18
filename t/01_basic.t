@@ -1,7 +1,9 @@
+use strict;
+use warnings;
 use v5.10;
 
 use Algorithm::AdaBoost;
-use Smart::Args;
+use Test::Exception::LessClever;
 use Test::More;
 
 my @dataset = map {
@@ -13,38 +15,78 @@ my @dataset = map {
 my @training_set = @dataset[0 .. 99];
 my @test_set = @dataset[100 .. 199];
 
-my $learner = new_ok 'Algorithm::AdaBoost' => [
-  training_set => \@training_set,
-  weak_classifier_generator => \&generate_weak_classifier,
-];
-ok(
-  +(not $learner->trained),
-  '|trained| should be false before the learner |train|-ed.'
-);
+subtest 'Training on dataset given to the constructor.' => sub {
+  my $learner = new_ok 'Algorithm::AdaBoost' => [
+    training_set => \@training_set,
+    weak_classifier_generator => \&generate_weak_classifier,
+  ];
+  ok(
+    +(not $learner->trained),
+    '|trained| should be false before the learner |train|-ed.',
+  );
 
-$learner->train(num_iterations => 1000);
-ok($learner->trained, 'A classifier is constructed successfully.');
+  $learner->train(num_iterations => 1000);
+  ok($learner->trained, 'A classifier is constructed successfully.');
+  classifier_accuracy_ok(
+    classifier => $learner->final_classifier,
+    expected_least_accuracy => 0.65,
+    test_set => \@test_set,
+  );
+};
 
-my $classifier = $learner->final_classifier;
+subtest 'Training on dataset given to |train| method.' => sub {
+  my $learner = new_ok 'Algorithm::AdaBoost';
+  ok(
+    +(not $learner->trained),
+    '|trained| should be false before the learner |train|-ed.',
+  );
 
-my $correct = 0;
-for my $test_data (@test_set) {
-  my $answer = $classifier->classify($test_data->{feature}) < 0 ? -1 : 1;
-  ++$correct if $answer == $test_data->{label};
-}
-my $accuracy = $correct / @test_set;
-cmp_ok(
-  $accuracy, '>', 0.65,
-  'The constructed classifier should sagnificantly accurate rather than random guess'
-);
+  throws_ok { $learner->train(num_iterations => 1000) }
+    qr/Given no (?:training set|weak classifier generator)/i,
+    'It is an error to train without |training_set| and'
+    . ' |weak_classifier_generator|.';
+
+  $learner->train(
+    num_iterations => 1000,
+    training_set => \@training_set,
+    weak_classifier_generator => \&generate_weak_classifier,
+  );
+  ok($learner->trained, 'A classifier is constructed successfully.');
+  classifier_accuracy_ok(
+    classifier => $learner->final_classifier,
+    expected_least_accuracy => 0.65,
+    test_set => \@test_set,
+  );
+};
 
 done_testing;
 
+sub classifier_accuracy_ok {
+  my (%params) = @_;
+
+  my $classifier = delete $params{classifier};
+  my $expected_least_accuracy = delete $params{expected_least_accuracy};
+  my $test_set = delete $params{test_set};
+
+  my $correct = 0;
+  for my $test_data (@$test_set) {
+    my $answer = $classifier->classify($test_data->{feature}) < 0 ? -1 : 1;
+    ++$correct if $answer == $test_data->{label};
+  }
+  my $accuracy = $correct / @test_set;
+  cmp_ok(
+    $accuracy, '>', $expected_least_accuracy,
+    'The constructed classifier should significantly accurate rather than'
+      . ' random guess',
+  );
+}
+
 # Generates simple linear classifier randomly.
 sub generate_weak_classifier {
-  args
-    my $distribution => 'ArrayRef[Num]',
-    my $training_set => 'ArrayRef[HashRef]';
+  my (%params) = @_;
+
+  my $distribution = delete $params{distribution};
+  my $training_set = delete $params{training_set};
 
   while (1) {
     my ($o_x, $o_y) = (rand(6) - 3, rand(6) - 3);
@@ -53,7 +95,8 @@ sub generate_weak_classifier {
 
     my $accuracy = 0;
     my $classifier_candidate = sub {
-      args_pos my $point => 'ArrayRef[Num]';
+      my ($point) = @_;
+
       my ($x, $y) = @$point;
       my @position_vector = ($x - $o_x, $y - $o_y);
       my $inner_product = $normal_vector[0] * $position_vector[0]
