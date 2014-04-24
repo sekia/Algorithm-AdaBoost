@@ -50,9 +50,9 @@ Returns a CodeRef which delegates given arguments to C<classify>.
 Altough you can use the object itself like a CodeRef because C<&{}> operator is overloaded with this method, it constructs a closure for each call.
 So if you classify many inputs, you should hold a closure explicitly or use C<classify> directly.
 
-=head2 classify
+=head2 classify($feature)
 
-Executes binary classification. Takes 1 argument as a feature and return a real number. If the number is positive, given feature is considered to belong to one class. Similary, If the number is negative, given feature is considered to belong to another one class. If zero is returned, it means that the feature cannot be classified (very rare case).
+Executes binary classification on given C<$feature>. Result is returned as real number. Its sign indicates class label (+1 when the sign is positive, -1 otherwise) and its absolute value is a reliability (greater is more likely.)
 
 =head1 AUTHOR
 

@@ -148,6 +148,7 @@ __END__
   # Training phase.
   my $learner = Alogrithm::AdaBoost->new(
     training_set => [
+      # Structure of |feature| is arbitrary. |label| must be +1 or -1.
       +{ feature => [...], label => 1, },
       +{ feature => [...], label => -1, },
       +{ feature => [...], label => -1, },
@@ -155,14 +156,17 @@ __END__
     ],
     weak_classifier_generator => \&my_poor_learning_algorithm,
   );
-  $learner->train(num_iterations => 1_000);
+  $learner->train;
 
   # Now you have a boost-ed classifier (Algorithm::AdaBoost::Classifier).
   my $classifier = $learner->final_classifier;
-  given ($classifier->classify([...])) {
-    when ($_ > 0) { say 'The data belongs to class 1.' }
-    when ($_ < 0) { say 'The data belongs to class 2.' }
-    default { warn 'The data cannot be classified.' }
+  my $result = $classifier->classify([...]);
+  if ($result > 0) {
+    say 'Positive sample.';
+  } elsif ($result < 0) {
+    say 'Negative sample.';
+  } else {
+    warn 'Data cannot be classified.'
   }
 
 =head1 DESCRIPTION
@@ -209,11 +213,13 @@ Shorthand for C<< $learner->final_classifier->classify >>.
 
 =head2 final_classifier
 
-Returns the last constructed classifier.
+Returns the last C<train>ed classifier.
+
+Note that the classifier has no dependnecy on C<Algorithm::AdaBoost> (i.e., learner) instance. So you can store the classifier in other place and reuse the learner for training other classifiers, or C<undef> the learner for freeing up memory.
 
 =head2 train([error_ratio_threshold => 0.50] [, num_iterations => 0+'inf'] [, training_set => \@training_set] [, weak_classifier_generator => \&weak_classifier_generator])
 
-Constructs an accurate classifier from given training set and weak learning algorithm.
+Constructs an boosted classifier from given training set and weak learning algorithm.
 
 =over 2
 
