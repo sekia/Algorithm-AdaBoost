@@ -23,25 +23,6 @@ sub new {
   bless \%self => $class;
 }
 
-sub calculate_classifier_weight {
-  my ($self, %params) = @_;
-
-  my $classifier = delete $params{classifier}
-    // Carp::croak('Missing mandatory parameter: "classifier"');
-  my $distribution = delete $params{distribution}
-    // Carp::croak('Missing mandatory parameter: "distribution"');
-  my $training_set = delete $params{training_set}
-    // Carp::croak('Missing mandatory parameter: "training_set"');
-  assert_no_rest_params %params;
-
-  my $error_ratio = $self->evaluate_error_ratio(
-    classifier => $classifier,
-    distribution => $distribution,
-    training_set => $training_set,
-  );
-  return log((1 - $error_ratio) / $error_ratio) / 2;
-}
-
 sub classify {
   my ($self, $feature) = @_;
 
@@ -103,8 +84,8 @@ sub final_classifier {
 sub train {
   my ($self, %params) = @_;
 
-  my $num_iterations = delete $params{num_iterations}
-    // Carp::croak('Missing mandatory parameter: "num_iterations"');
+  my $error_ratio_threshold = delete $params{error_ratio_threshold} // 0.50;
+  my $num_iterations = delete $params{num_iterations} // 0+'inf';
   my $training_set = delete $params{training_set}
     // $self->training_set
     // Carp::croak('Given no training set.');
@@ -126,11 +107,13 @@ sub train {
       distribution => $distribution,
       training_set => $training_set,
     );
-    $weight = $self->calculate_classifier_weight(
+    my $error_ratio = $self->evaluate_error_ratio(
       classifier => $weak_classifier,
       distribution => $distribution,
       training_set => $training_set,
     );
+    last if $error_ratio >= $error_ratio_threshold;
+    $weight = log((1 - $error_ratio) / $error_ratio) / 2;
     push @weak_classifiers, +{
       classifier => $weak_classifier,
       weight => $weight,
@@ -189,7 +172,7 @@ Using an arbitrary binary classification algorithm, The algorithm can construct 
 
 =head1 METHODS
 
-=head2 new
+=head2 new([training_set => \@training_set] [, weak_classifier_generator => \&weak_classifier_generator])
 
 Constructor. You can specify 2 optional attributes:
 
@@ -220,7 +203,7 @@ The generated classifier is expected to be a CodeRef which takes 1 argument (val
 
 Either of both can be overriden temporarily with parameters for C<train>.
 
-=head2 classify
+=head2 classify($feature)
 
 Shorthand for C<< $learner->final_classifier->classify >>.
 
@@ -228,27 +211,41 @@ Shorthand for C<< $learner->final_classifier->classify >>.
 
 Returns the last constructed classifier.
 
-=head2 train
+=head2 train([error_ratio_threshold => 0.50] [, num_iterations => 0+'inf'] [, training_set => \@training_set] [, weak_classifier_generator => \&weak_classifier_generator])
 
-Constructs a stronger classifier from given training set and weak learning algorithm.
-
-This method takes 1 mandatory parameter:
+Constructs an accurate classifier from given training set and weak learning algorithm.
 
 =over 2
+
+=item error_ratio_threshold
+
+Criterion for stopping training iteration. The iteration will stop if a generated weak classifier's error ratio is not less than this value, regardless of the value of C<num_iterations>.
+
+By default its value is 0.50. So the iteration will stop if the given learning algorithm could generate weak classifier accurate than random guess no more.
 
 =item num_iterations
 
-Specifies how many training iterations to be excuted (i.e., how many weak classifiers to be generated).
+Specifies how many training iterations to be excuted (i.e., how many weak classifiers to be generated) at most. If ommited, the iteration will continue until the learning algorithm emit a weak classifier having error ratio not less than C<error_ratio_threshold>.
 
-=back
-
-and 2 optional parameters:
+Summarizing up, the training iteration will stop when either or both conditions below is satisfied:
 
 =over 2
+
+=item 1.
+
+The given learning algorithm generated a classifier and its error ratio is equal to or worse than C<error_ratio_threshold>.
+
+=item 2.
+
+The iteration is executed C<num_iterations> times.
+
+=back
 
 =item training_set
 
 =item weak_classifier_generator
+
+These 2 options are same as constuctor parameters.
 
 =back
 
